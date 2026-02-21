@@ -3,14 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generator Angka ELITE PRO MAX</title>
+<title>Generator ELITE - 1 Akun 1 Device</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
-body { font-family: Arial; padding:20px; background:#f4f6f9; transition:0.3s;}
-.dark { background:#1e1e1e; color:white; }
-.container { background:white; padding:20px; border-radius:12px; max-width:1000px; margin:auto; box-shadow:0 5px 20px rgba(0,0,0,0.1); transition:0.3s;}
-.dark .container { background:#2c2c2c; }
+body { font-family: Arial; padding:20px; background:#f4f6f9;}
+.container { background:white; padding:20px; border-radius:12px; max-width:1000px; margin:auto; box-shadow:0 5px 20px rgba(0,0,0,0.1);}
 textarea { width:100%; height:300px; margin-top:10px; font-family:monospace; }
 input { padding:8px; width:100%; margin-bottom:10px; }
 button { padding:10px 18px; margin:5px 5px 5px 0; border:none; border-radius:6px; cursor:pointer; }
@@ -18,26 +16,36 @@ button { padding:10px 18px; margin:5px 5px 5px 0; border:none; border-radius:6px
 .copy { background:#2196F3; color:white; }
 .xlsx { background:#FF9800; color:white; }
 .csv { background:#795548; color:white; }
-.darkbtn { background:#9C27B0; color:white; }
+.login { background:#673AB7; color:white; width:100%; }
+.logout { background:#f44336; color:white; }
 .stat { margin-top:10px; font-size:14px; }
+#app { display:none; }
 </style>
 </head>
 <body>
 
-<div class="container">
-<h2>🔥 Generator Angka ELITE PRO MAX</h2>
+<div class="container" id="loginBox">
+<h2>Login</h2>
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<button class="login" onclick="login()">Login</button>
+<p id="loginError" style="color:red;"></p>
+</div>
 
-<label>Masukkan Kode Awal (pisahkan dengan enter):</label>
+<div class="container" id="app">
+<h2>🔥 Generator Angka ELITE PRO MAX</h2>
+<button class="logout" onclick="logout()">Logout</button>
+
+<label>Masukkan Kode Awal:</label>
 <textarea id="startVals">07KJ0010005</textarea>
 
 <label>Jumlah Data per Kode:</label>
 <input type="number" id="jumlah" value="100">
 
 <button class="gen" onclick="generate()">Generate</button>
-<button class="copy" onclick="copyAll()">Copy Hasil</button>
+<button class="copy" onclick="copyAll()">Copy</button>
 <button class="xlsx" onclick="downloadXLSX()">Download XLSX</button>
 <button class="csv" onclick="downloadCSV()">Download CSV</button>
-<button class="darkbtn" onclick="toggleDark()">Dark Mode</button>
 
 <div class="stat" id="stat"></div>
 <textarea id="output"></textarea>
@@ -57,26 +65,14 @@ function pad(num,len){
 }
 
 function nextValue(current){
-    let last2 = current % 100;
-    let last3 = current % 1000;
-    let ribuan = Math.floor((current % 10000) / 1000);
-    let lastDigit = current % 10;
-
-    if (last3 >= 990 && last3 <= 993) return current + ((ribuan===4)?15:16);
-    if (last3 >= 994 && last3 <= 999) return current + ((ribuan===4)?5:6);
-    if (last2 >= 40 && last2 <= 42) return current + 17;
-    if (last2 >= 43 && last2 <= 49) return current + 7;
-    if (lastDigit === 0 || lastDigit === 1) return current + 18;
     return current + 8;
 }
 
 function generate(){
     let inputs = document.getElementById("startVals").value.trim().split("\n");
     let jumlah = Number(document.getElementById("jumlah").value);
-
     generatedData = [];
     let outputText = "";
-    let startTime = Date.now();
 
     for(let code of inputs){
         let parts = splitCode(code.trim());
@@ -95,28 +91,21 @@ function generate(){
         }
     }
 
-    let endTime = Date.now();
-
     document.getElementById("output").value = outputText;
     document.getElementById("stat").innerHTML =
-        "Total Generated: "+generatedData.length+" | Time: "+(endTime-startTime)+" ms";
+        "Total Generated: "+generatedData.length;
 }
 
 function copyAll(){
-    if(generatedData.length === 0){
-        alert("Belum ada data!");
-        return;
-    }
     let text = generatedData.map(r => r[0]).join("\n");
     navigator.clipboard.writeText(text);
-    alert("Hasil berhasil di-copy!");
 }
 
 function downloadXLSX(){
     let wb = XLSX.utils.book_new();
     let ws = XLSX.utils.aoa_to_sheet(generatedData);
     XLSX.utils.book_append_sheet(wb, ws, "Data");
-    XLSX.writeFile(wb, "ELITE_PRO_MAX.xlsx");
+    XLSX.writeFile(wb, "ELITE.xlsx");
 }
 
 function downloadCSV(){
@@ -124,19 +113,15 @@ function downloadCSV(){
     let blob = new Blob([csv],{type:"text/csv"});
     let link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "ELITE_PRO_MAX.csv";
+    link.download = "ELITE.csv";
     link.click();
-}
-
-function toggleDark(){
-    document.body.classList.toggle("dark");
 }
 </script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA4mh_ccoXhKyYITNd3otfi-kb2IuQu1rg",
@@ -160,29 +145,48 @@ function getDeviceID(){
     return id;
 }
 
-async function lockDevice(){
-    await signInAnonymously(auth);
+window.login = async function(){
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-    const deviceID = getDeviceID();
-    const deviceRef = doc(db, "device_lock", "elite_pro_max");
-    const snap = await getDoc(deviceRef);
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        const deviceID = getDeviceID();
+        const userRef = doc(db, "users", user.uid);
+        const snap = await getDoc(userRef);
 
-    if(!snap.exists()){
-        await setDoc(deviceRef, { deviceID: deviceID });
-        console.log("Device pertama terkunci.");
-    } else {
-        const savedID = snap.data().deviceID;
-        if(savedID !== deviceID){
-            document.body.innerHTML = `
-            <div style="text-align:center;margin-top:100px;font-family:Arial">
-                <h1 style="color:red;">AKSES DITOLAK</h1>
-                <p>Device tidak terdaftar.</p>
-            </div>`;
+        if(!snap.exists()){
+            await setDoc(userRef, { deviceID: deviceID });
+        } else {
+            const savedID = snap.data().deviceID;
+            if(savedID && savedID !== deviceID){
+                alert("Akun sudah digunakan di device lain!");
+                await signOut(auth);
+                return;
+            } else {
+                await updateDoc(userRef, { deviceID: deviceID });
+            }
         }
+
+    } catch (error) {
+        document.getElementById("loginError").innerText = error.message;
     }
 }
 
-lockDevice();
+window.logout = function(){
+    signOut(auth);
+}
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        document.getElementById("loginBox").style.display="none";
+        document.getElementById("app").style.display="block";
+    } else {
+        document.getElementById("loginBox").style.display="block";
+        document.getElementById("app").style.display="none";
+    }
+});
 </script>
 
 </body>
