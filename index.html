@@ -3,22 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generator ELITE - 1 Akun 1 Device</title>
+<title>ELITE Generator - Full Secure APK</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
 <style>
 body { font-family: Arial; padding:20px; background:#f4f6f9;}
 .container { background:white; padding:20px; border-radius:12px; max-width:1000px; margin:auto; box-shadow:0 5px 20px rgba(0,0,0,0.1);}
-textarea { width:100%; height:300px; margin-top:10px; font-family:monospace; }
+textarea { width:100%; height:250px; margin-top:10px; font-family:monospace; }
 input { padding:8px; width:100%; margin-bottom:10px; }
 button { padding:10px 18px; margin:5px 5px 5px 0; border:none; border-radius:6px; cursor:pointer; }
 .gen { background:#4CAF50; color:white; }
-.copy { background:#2196F3; color:white; }
 .xlsx { background:#FF9800; color:white; }
 .csv { background:#795548; color:white; }
-.login { background:#673AB7; color:white; width:100%; }
+.loginbtn { background:#673AB7; color:white; width:100%; }
 .logout { background:#f44336; color:white; }
-.stat { margin-top:10px; font-size:14px; }
 #app { display:none; }
 </style>
 </head>
@@ -28,7 +25,7 @@ button { padding:10px 18px; margin:5px 5px 5px 0; border:none; border-radius:6px
 <h2>Login</h2>
 <input type="email" id="email" placeholder="Email">
 <input type="password" id="password" placeholder="Password">
-<button class="login" onclick="login()">Login</button>
+<button class="loginbtn" onclick="login()">Login</button>
 <p id="loginError" style="color:red;"></p>
 </div>
 
@@ -36,18 +33,16 @@ button { padding:10px 18px; margin:5px 5px 5px 0; border:none; border-radius:6px
 <h2>🔥 Generator Angka ELITE PRO MAX</h2>
 <button class="logout" onclick="logout()">Logout</button>
 
-<label>Masukkan Kode Awal:</label>
+<label>Kode Awal:</label>
 <textarea id="startVals">07KJ0010005</textarea>
 
-<label>Jumlah Data per Kode:</label>
+<label>Jumlah Data:</label>
 <input type="number" id="jumlah" value="100">
 
 <button class="gen" onclick="generate()">Generate</button>
-<button class="copy" onclick="copyAll()">Copy</button>
 <button class="xlsx" onclick="downloadXLSX()">Download XLSX</button>
 <button class="csv" onclick="downloadCSV()">Download CSV</button>
 
-<div class="stat" id="stat"></div>
 <textarea id="output"></textarea>
 </div>
 
@@ -83,7 +78,6 @@ function generate(){
     let jumlah = Number(document.getElementById("jumlah").value);
     generatedData = [];
     let outputText = "";
-    let startTime = Date.now();
 
     for(let code of inputs){
         let parts = splitCode(code.trim());
@@ -102,32 +96,51 @@ function generate(){
         }
     }
 
-    let endTime = Date.now();
-
     document.getElementById("output").value = outputText;
-    document.getElementById("stat").innerHTML =
-        "Total Generated: "+generatedData.length+" | Time: "+(endTime-startTime)+" ms";
 }
 
-function copyAll(){
-    let text = generatedData.map(r => r[0]).join("\n");
-    navigator.clipboard.writeText(text);
-}
-
+// APK SAFE XLSX
 function downloadXLSX(){
+    if(generatedData.length === 0){
+        alert("Generate data dulu!");
+        return;
+    }
+
     let wb = XLSX.utils.book_new();
     let ws = XLSX.utils.aoa_to_sheet(generatedData);
     XLSX.utils.book_append_sheet(wb, ws, "Data");
-    XLSX.writeFile(wb, "ELITE.xlsx");
+
+    let wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+    let blob = new Blob([wbout], {type:"application/octet-stream"});
+
+    let url = window.URL.createObjectURL(blob);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "ELITE_PRO_MAX.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
 }
 
+// APK SAFE CSV
 function downloadCSV(){
+    if(generatedData.length === 0){
+        alert("Generate data dulu!");
+        return;
+    }
+
     let csv = generatedData.map(r=>r[0]).join("\n");
     let blob = new Blob([csv],{type:"text/csv"});
-    let link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "ELITE.csv";
-    link.click();
+
+    let url = window.URL.createObjectURL(blob);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "ELITE_PRO_MAX.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
 }
 </script>
 
