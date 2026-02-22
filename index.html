@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ELITE Generator - Full Secure APK</title>
+<title>ELITE Generator PRO - Ultimate APK</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
 <style>
 body { font-family: Arial; padding:20px; background:#f4f6f9;}
 .container { background:white; padding:20px; border-radius:12px; max-width:1000px; margin:auto; box-shadow:0 5px 20px rgba(0,0,0,0.1);}
@@ -12,6 +13,7 @@ textarea { width:100%; height:250px; margin-top:10px; font-family:monospace; }
 input { padding:8px; width:100%; margin-bottom:10px; }
 button { padding:10px 18px; margin:5px 5px 5px 0; border:none; border-radius:6px; cursor:pointer; }
 .gen { background:#4CAF50; color:white; }
+.copy { background:#2196F3; color:white; }
 .xlsx { background:#FF9800; color:white; }
 .csv { background:#795548; color:white; }
 .loginbtn { background:#673AB7; color:white; width:100%; }
@@ -40,6 +42,7 @@ button { padding:10px 18px; margin:5px 5px 5px 0; border:none; border-radius:6px
 <input type="number" id="jumlah" value="100">
 
 <button class="gen" onclick="generate()">Generate</button>
+<button class="copy" onclick="copyAll()">Copy Hasil</button>
 <button class="xlsx" onclick="downloadXLSX()">Download XLSX</button>
 <button class="csv" onclick="downloadCSV()">Download CSV</button>
 
@@ -99,7 +102,18 @@ function generate(){
     document.getElementById("output").value = outputText;
 }
 
-// APK SAFE XLSX
+// COPY BUTTON RESTORED
+function copyAll(){
+    if(generatedData.length === 0){
+        alert("Generate data dulu!");
+        return;
+    }
+    let text = generatedData.map(r => r[0]).join("\n");
+    navigator.clipboard.writeText(text);
+    alert("Berhasil di-copy!");
+}
+
+// SUPER SAFE XLSX
 function downloadXLSX(){
     if(generatedData.length === 0){
         alert("Generate data dulu!");
@@ -110,20 +124,31 @@ function downloadXLSX(){
     let ws = XLSX.utils.aoa_to_sheet(generatedData);
     XLSX.utils.book_append_sheet(wb, ws, "Data");
 
-    let wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
-    let blob = new Blob([wbout], {type:"application/octet-stream"});
+    let wbout = XLSX.write(wb, {bookType:'xlsx', type:'binary'});
 
-    let url = window.URL.createObjectURL(blob);
+    function s2ab(s){
+        let buf = new ArrayBuffer(s.length);
+        let view = new Uint8Array(buf);
+        for (let i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+        return buf;
+    }
+
+    let blob = new Blob([s2ab(wbout)], {type:"application/octet-stream"});
+    let url = URL.createObjectURL(blob);
+
     let a = document.createElement("a");
     a.href = url;
     a.download = "ELITE_PRO_MAX.xlsx";
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+
+    setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }, 100);
 }
 
-// APK SAFE CSV
+// CSV SAFE
 function downloadCSV(){
     if(generatedData.length === 0){
         alert("Generate data dulu!");
@@ -132,15 +157,18 @@ function downloadCSV(){
 
     let csv = generatedData.map(r=>r[0]).join("\n");
     let blob = new Blob([csv],{type:"text/csv"});
+    let url = URL.createObjectURL(blob);
 
-    let url = window.URL.createObjectURL(blob);
     let a = document.createElement("a");
     a.href = url;
     a.download = "ELITE_PRO_MAX.csv";
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+
+    setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }, 100);
 }
 </script>
 
