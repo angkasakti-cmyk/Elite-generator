@@ -110,8 +110,22 @@ onAuthStateChanged(auth,(user)=>{
     }
 });
 
-// GENERATOR
+// ===== ORIGINAL FORMULA =====
 let generatedData = [];
+
+function nextValue(current){
+    let last2 = current % 100;
+    let last3 = current % 1000;
+    let ribuan = Math.floor((current % 10000) / 1000);
+    let lastDigit = current % 10;
+
+    if (last3 >= 990 && last3 <= 993) return current + ((ribuan===4)?15:16);
+    if (last3 >= 994 && last3 <= 999) return current + ((ribuan===4)?5:6);
+    if (last2 >= 40 && last2 <= 42) return current + 17;
+    if (last2 >= 43 && last2 <= 49) return current + 7;
+    if (lastDigit === 0 || lastDigit === 1) return current + 18;
+    return current + 8;
+}
 
 window.generate = function(){
     let inputs=document.getElementById("startVals").value.trim().split("\n");
@@ -123,7 +137,7 @@ window.generate = function(){
         if(!match)continue;
         let prefix=match[1],numStr=match[2],len=numStr.length,current=parseInt(numStr);
         for(let i=1;i<=jumlah;i++){
-            if(i>1)current+=8;
+            if(i>1)current=nextValue(current);
             let full=prefix+current.toString().padStart(len,'0');
             generatedData.push([full]);
             outputText+=full+"\n";
