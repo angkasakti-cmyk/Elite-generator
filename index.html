@@ -3,13 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ELITE Generator PRO - Ultimate APK</title>
+<title>Elite Generator PRO</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4CAF50">
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
 <style>
 body { font-family: Arial; padding:20px; background:#f4f6f9;}
-.container { background:white; padding:20px; border-radius:12px; max-width:1000px; margin:auto; box-shadow:0 5px 20px rgba(0,0,0,0.1);}
-textarea { width:100%; height:250px; margin-top:10px; font-family:monospace; }
+.container { background:white; padding:20px; border-radius:12px; max-width:900px; margin:auto; box-shadow:0 5px 20px rgba(0,0,0,0.1);}
+textarea { width:100%; height:220px; margin-top:10px; font-family:monospace; }
 input { padding:8px; width:100%; margin-bottom:10px; }
 button { padding:10px 18px; margin:5px 5px 5px 0; border:none; border-radius:6px; cursor:pointer; }
 .gen { background:#4CAF50; color:white; }
@@ -32,151 +36,25 @@ button { padding:10px 18px; margin:5px 5px 5px 0; border:none; border-radius:6px
 </div>
 
 <div class="container" id="app">
-<h2>🔥 Generator Angka ELITE PRO MAX</h2>
+<h2>Elite Generator PRO</h2>
 <button class="logout" onclick="logout()">Logout</button>
-
 <label>Kode Awal:</label>
 <textarea id="startVals">07KJ0010005</textarea>
-
 <label>Jumlah Data:</label>
 <input type="number" id="jumlah" value="100">
-
 <button class="gen" onclick="generate()">Generate</button>
-<button class="copy" onclick="copyAll()">Copy Hasil</button>
+<button class="copy" onclick="copyAll()">Copy</button>
 <button class="xlsx" onclick="downloadXLSX()">Download XLSX</button>
 <button class="csv" onclick="downloadCSV()">Download CSV</button>
-
 <textarea id="output"></textarea>
 </div>
 
 <script>
-let generatedData = [];
-
-function splitCode(code){
-    let match = code.match(/^(.*?)(\d+)$/);
-    if(!match) return null;
-    return { prefix: match[1], number: match[2] };
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
 }
 
-function pad(num,len){
-    return num.toString().padStart(len,'0');
-}
-
-function nextValue(current){
-    let last2 = current % 100;
-    let last3 = current % 1000;
-    let ribuan = Math.floor((current % 10000) / 1000);
-    let lastDigit = current % 10;
-
-    if (last3 >= 990 && last3 <= 993) return current + ((ribuan===4)?15:16);
-    if (last3 >= 994 && last3 <= 999) return current + ((ribuan===4)?5:6);
-    if (last2 >= 40 && last2 <= 42) return current + 17;
-    if (last2 >= 43 && last2 <= 49) return current + 7;
-    if (lastDigit === 0 || lastDigit === 1) return current + 18;
-    return current + 8;
-}
-
-function generate(){
-    let inputs = document.getElementById("startVals").value.trim().split("\n");
-    let jumlah = Number(document.getElementById("jumlah").value);
-    generatedData = [];
-    let outputText = "";
-
-    for(let code of inputs){
-        let parts = splitCode(code.trim());
-        if(!parts) continue;
-
-        let prefix = parts.prefix;
-        let numStr = parts.number;
-        let len = numStr.length;
-        let current = parseInt(numStr);
-
-        for(let i=1;i<=jumlah;i++){
-            if(i>1) current = nextValue(current);
-            let full = prefix + pad(current,len);
-            generatedData.push([full]);
-            outputText += full + "\n";
-        }
-    }
-
-    document.getElementById("output").value = outputText;
-}
-
-// COPY BUTTON RESTORED
-function copyAll(){
-    if(generatedData.length === 0){
-        alert("Generate data dulu!");
-        return;
-    }
-    let text = generatedData.map(r => r[0]).join("\n");
-    navigator.clipboard.writeText(text);
-    alert("Berhasil di-copy!");
-}
-
-// SUPER SAFE XLSX
-function downloadXLSX(){
-    if(generatedData.length === 0){
-        alert("Generate data dulu!");
-        return;
-    }
-
-    let wb = XLSX.utils.book_new();
-    let ws = XLSX.utils.aoa_to_sheet(generatedData);
-    XLSX.utils.book_append_sheet(wb, ws, "Data");
-
-    let wbout = XLSX.write(wb, {bookType:'xlsx', type:'binary'});
-
-    function s2ab(s){
-        let buf = new ArrayBuffer(s.length);
-        let view = new Uint8Array(buf);
-        for (let i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
-        return buf;
-    }
-
-    let blob = new Blob([s2ab(wbout)], {type:"application/octet-stream"});
-    let url = URL.createObjectURL(blob);
-
-    let a = document.createElement("a");
-    a.href = url;
-    a.download = "ELITE_PRO_MAX.xlsx";
-    document.body.appendChild(a);
-    a.click();
-
-    setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }, 100);
-}
-
-// CSV SAFE
-function downloadCSV(){
-    if(generatedData.length === 0){
-        alert("Generate data dulu!");
-        return;
-    }
-
-    let csv = generatedData.map(r=>r[0]).join("\n");
-    let blob = new Blob([csv],{type:"text/csv"});
-    let url = URL.createObjectURL(blob);
-
-    let a = document.createElement("a");
-    a.href = url;
-    a.download = "ELITE_PRO_MAX.csv";
-    document.body.appendChild(a);
-    a.click();
-
-    setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }, 100);
-}
-</script>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+// FIREBASE CONFIG (PASTE YOUR CONFIG IF NEEDED)
 const firebaseConfig = {
   apiKey: "AIzaSyA4mh_ccoXhKyYITNd3otfi-kb2IuQu1rg",
   authDomain: "saktigenerator-cloud-173a2.firebaseapp.com",
@@ -186,11 +64,11 @@ const firebaseConfig = {
   appId: "1:591213700785:web:f1975023d8e4c26bb7e490"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-function getDeviceID(){
+function getDeviceID() {
     let id = localStorage.getItem("elite_device_id");
     if(!id){
         id = crypto.randomUUID();
@@ -199,48 +77,110 @@ function getDeviceID(){
     return id;
 }
 
-window.login = async function(){
+async function login(){
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
-
-    try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    try{
+        const userCredential = await auth.signInWithEmailAndPassword(email,password);
         const user = userCredential.user;
         const deviceID = getDeviceID();
-        const userRef = doc(db, "users", user.uid);
-        const snap = await getDoc(userRef);
-
-        if(!snap.exists()){
-            await setDoc(userRef, { deviceID: deviceID });
+        const userRef = db.collection("users").doc(user.uid);
+        const snap = await userRef.get();
+        if(!snap.exists){
+            await userRef.set({deviceID:deviceID});
         } else {
             const savedID = snap.data().deviceID;
             if(savedID && savedID !== deviceID){
                 alert("Akun sudah digunakan di device lain!");
-                await signOut(auth);
+                auth.signOut();
                 return;
-            } else {
-                await updateDoc(userRef, { deviceID: deviceID });
             }
         }
-
-    } catch (error) {
-        document.getElementById("loginError").innerText = error.message;
+    }catch(e){
+        document.getElementById("loginError").innerText = e.message;
     }
 }
 
-window.logout = function(){
-    signOut(auth);
-}
+function logout(){ auth.signOut(); }
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
+auth.onAuthStateChanged(user=>{
+    if(user){
         document.getElementById("loginBox").style.display="none";
         document.getElementById("app").style.display="block";
-    } else {
+    }else{
         document.getElementById("loginBox").style.display="block";
         document.getElementById("app").style.display="none";
     }
 });
+
+// GENERATOR
+let generatedData = [];
+
+function splitCode(code){
+    let match = code.match(/^(.*?)(\d+)$/);
+    if(!match) return null;
+    return { prefix: match[1], number: match[2] };
+}
+
+function pad(num,len){ return num.toString().padStart(len,'0'); }
+
+function nextValue(current){
+    let last2=current%100,last3=current%1000,r=Math.floor((current%10000)/1000),ld=current%10;
+    if(last3>=990&&last3<=993)return current+((r===4)?15:16);
+    if(last3>=994&&last3<=999)return current+((r===4)?5:6);
+    if(last2>=40&&last2<=42)return current+17;
+    if(last2>=43&&last2<=49)return current+7;
+    if(ld===0||ld===1)return current+18;
+    return current+8;
+}
+
+function generate(){
+    let inputs=document.getElementById("startVals").value.trim().split("\n");
+    let jumlah=Number(document.getElementById("jumlah").value);
+    generatedData=[];
+    let outputText="";
+    for(let code of inputs){
+        let parts=splitCode(code.trim());
+        if(!parts)continue;
+        let prefix=parts.prefix,numStr=parts.number,len=numStr.length,current=parseInt(numStr);
+        for(let i=1;i<=jumlah;i++){
+            if(i>1)current=nextValue(current);
+            let full=prefix+pad(current,len);
+            generatedData.push([full]);
+            outputText+=full+"\n";
+        }
+    }
+    document.getElementById("output").value=outputText;
+}
+
+function copyAll(){
+    if(generatedData.length===0)return;
+    navigator.clipboard.writeText(generatedData.map(r=>r[0]).join("\n"));
+}
+
+function downloadXLSX(){
+    if(generatedData.length===0)return;
+    let wb=XLSX.utils.book_new();
+    let ws=XLSX.utils.aoa_to_sheet(generatedData);
+    XLSX.utils.book_append_sheet(wb,ws,"Data");
+    let wbout=XLSX.write(wb,{bookType:'xlsx',type:'binary'});
+    function s2ab(s){let buf=new ArrayBuffer(s.length);let view=new Uint8Array(buf);for(let i=0;i<s.length;i++)view[i]=s.charCodeAt(i)&0xFF;return buf;}
+    let blob=new Blob([s2ab(wbout)],{type:"application/octet-stream"});
+    let a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="ELITE_"+new Date().toISOString().slice(0,10)+".xlsx";
+    a.click();
+}
+
+function downloadCSV(){
+    if(generatedData.length===0)return;
+    let csv=generatedData.map(r=>r[0]).join("\n");
+    let blob=new Blob([csv],{type:"text/csv"});
+    let a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="ELITE_"+new Date().toISOString().slice(0,10)+".csv";
+    a.click();
+}
 </script>
 
 </body>
